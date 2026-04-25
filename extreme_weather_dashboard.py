@@ -205,8 +205,8 @@ st.markdown(
     **Data Sources:**
     - NOAA API Docs: https://www.weather.gov/documentation/services-web-api  
     - NASA FIRMS Wildfires: https://firms.modaps.eosdis.nasa.gov  
-    - EPA Envirofacts / ECHO Facility Data: https://www.epa.gov/enviro  
-    - EPA ECHO Database: https://echo.epa.gov/tools/data-downloads  
-    - USDA Food Loss Estimates: https://www.usda.gov/foodlossandwaste  
+    - USDA Agricultural Export Dataset (Plotly public dataset): https://github.com/plotly/datasets  
+    - USDA Food Loss & Waste reference: https://www.usda.gov/foodlossandwaste  
+    - EPA context reference: https://www.epa.gov/sustainable-management-food  
     """
 )
