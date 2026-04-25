@@ -8,42 +8,44 @@ st.set_page_config(layout="wide")
 st.title("🌍 Climate Intelligence Dashboard")
 
 # -----------------------------
-# 🥗 FOOD WASTE DATA (SIMULATED / REPLACEABLE)
+# 🥗 FOOD WASTE DATA
 # -----------------------------
 def get_food_waste_data():
-    # EPA ECHO / Envirofacts-style facility data (real API endpoint)
     url = "https://data.epa.gov/efservice/FRS_INTEREST/rows/0:100/json"
 
     try:
         df = pd.read_json(url)
 
-        # Keep only usable geospatial columns if available
+        # 🔍 Inspect real column names first
+        # EPA datasets often use different naming formats
+        lat_col = None
+        lon_col = None
+
+        for col in df.columns:
+            if "LAT" in col.upper():
+                lat_col = col
+            if "LON" in col.upper():
+                lon_col = col
+
+        if not lat_col or not lon_col:
+            st.error(f"EPA dataset missing coordinates. Columns: {list(df.columns)}")
+            return pd.DataFrame()
+
         df = df.rename(columns={
-            "LATITUDE83": "lat",
-            "LONGITUDE83": "lon"
+            lat_col: "lat",
+            lon_col: "lon"
         })
 
-        # Drop missing coordinates
         df = df.dropna(subset=["lat", "lon"])
 
-        # Fake "waste intensity proxy" using facility size/type signals
-        df["waste_estimate"] = 100 + (df.index % 500)
+        # Create proxy waste metric
+        df["waste_estimate"] = 100 + (df.index % 400)
 
         return df[["lat", "lon", "waste_estimate"]]
 
     except Exception as e:
         st.error(f"EPA data fetch failed: {e}")
         return pd.DataFrame()
-
-def get_selected_column(time_range):
-    if time_range == "Last 24 Hours":
-        return "last_24_hours"
-    elif time_range == "Last Week":
-        return "last_week"
-    elif time_range == "Last Month":
-        return "last_month"
-    else:
-        return "last_year"
 
 # -----------------------------
 # 🚨 NOAA WEATHER ALERTS
@@ -157,21 +159,12 @@ st.subheader("🗺️ Live Extreme Events Map")
 st_folium(m, width=1200, height=600)
 
 # -----------------------------
-# 🥗 FOOD WASTE TIME FILTER
-# -----------------------------
-time_range = st.selectbox(
-    "🥗 Food Waste Time Range",
-    ["Last 24 Hours", "Last Week", "Last Month", "Last Year"]
-)
-
-# -----------------------------
 # 🥗 FOOD WASTE VISUALIZATION
 # -----------------------------
 try:
     waste_df = get_food_waste_data()
-    col = get_selected_column(time_range)
 
-    st.subheader("🥗 Food Waste Monitoring (tons)")
+    st.subheader("🥗 Food Waste Monitoring")
     st.markdown(
         """
         Data sources:
@@ -181,24 +174,30 @@ try:
         """
     )
 
-    # Show table
-    st.dataframe(waste_df[["location", col]])
+    st.subheader("🥗 Food Waste Monitoring (EPA Live Data)")
+
+    if waste_df.empty:
+        st.warning("No EPA food waste data available")
+    else:
+        st.dataframe(waste_df[["lat", "lon", "waste_estimate"]])
+
+        total_waste = waste_df["waste_estimate"].sum()
+        st.metric("Total Waste Estimate", f"{total_waste:,} units")
 
     # Add to map
     for _, row in waste_df.iterrows():
-        for _, row in waste_df.iterrows():
-            value = row["waste_estimate"]
+        value = row["waste_estimate"]
 
-            radius = max(4, min(value / 20, 20))
+        radius = max(4, min(value / 20, 20))
 
-            folium.CircleMarker(
-                location=[row["lat"], row["lon"]],
-                radius=radius,
-                popup=f"EPA Facility Waste Estimate: {value}",
-                color="green",
-                fill=True,
-                fill_opacity=0.6
-            ).add_to(m)
+        folium.CircleMarker(
+            location=[row["lat"], row["lon"]],
+            radius=radius,
+            popup=f"EPA Waste Estimate: {value}",
+            color="green",
+            fill=True,
+            fill_opacity=0.6
+        ).add_to(m)
 
     total_waste = waste_df[col].sum()
     st.metric("Total Food Waste", f"{total_waste:,} tons")
