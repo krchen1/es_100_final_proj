@@ -160,21 +160,27 @@ try:
     st.subheader("🥗 Food Waste Monitoring")
     st.markdown(
         """
-        Data sources:
-        - EPA RCRA Facility Data: https://www.epa.gov/enviro  
-        - EPA ECHO Database: https://echo.epa.gov/tools/data-downloads  
-        - USDA Food Loss Estimates: https://www.usda.gov/foodlossandwaste  
+        **Data Sources (Geospatial Proxy Model):**
+        - USDA Agricultural Export Dataset (Plotly public dataset): https://github.com/plotly/datasets  
+        - USDA Food Loss & Waste reference: https://www.usda.gov/foodlossandwaste  
+        - EPA context reference: https://www.epa.gov/sustainable-management-food  
         """
     )
 
     if waste_df.empty:
         st.warning("No EPA geospatial data available")
     else:
-        st.dataframe(waste_df)
+        st.dataframe(
+            waste_df.rename(columns={
+                "lat": "Latitude",
+                "lon": "Longitude",
+                "waste_estimate": "Food System Impact (Proxy)"
+            })
+        )
 
         if not waste_df.empty:
             total_waste = waste_df["waste_estimate"].sum()
-            st.metric("Total Waste Estimate", f"{total_waste:,} units")
+            st.metric("Total Food System Impact (Proxy)", f"{total_waste:,.2f}")
 
         # Add to map
         for _, row in waste_df.iterrows():
