@@ -97,11 +97,14 @@ try:
     for _, row in alerts_df.iterrows():
         folium.Marker(
             location=[row["lat"], row["lon"]],
-            popup=f"{row['event']} ({row['severity']})",
+            popup=f"{row['event']} ({row['severity']})<br>Source: NOAA",
             icon=folium.Icon(color="red")
         ).add_to(m)
     
     st.subheader("🚨 Active Weather Alerts")
+    st.markdown(
+        "Data source: [NOAA Weather.gov Alerts API](https://api.weather.gov/alerts/active)"
+    )
     st.dataframe(alerts_df.head(10))
     
 except Exception as e:
@@ -119,21 +122,32 @@ try:
         folium.CircleMarker(
             location=[row["lat"], row["lon"]],
             radius=radius,
-            popup=f"Brightness: {brightness}",
+            popup=f"Brightness: {brightness}<br>Source: NASA FIRMS",
             color="orange",
             fill=True,
             fill_opacity=0.6
         ).add_to(m)
     
     st.subheader("🔥 Active Wildfires")
+    st.markdown(
+        "Data source: [NASA FIRMS (Fire Information for Resource Management System)](https://firms.modaps.eosdis.nasa.gov/)"
+    )
     st.write(f"{len(fire_df)} fire detections")
-    
+
 except Exception as e:
     st.error(f"Fire Data Error: {e}")
 
 # Display map
 st.subheader("🗺️ Live Extreme Events Map")
 st_folium(m, width=1200, height=600)
+st.markdown(
+    """
+    **Data Sources:**
+    - NOAA Weather Alerts: https://api.weather.gov  
+    - NASA FIRMS Wildfires: https://firms.modaps.eosdis.nasa.gov  
+    - Food Waste: Simulated / USDA / EPA
+    """
+)
 
 # -----------------------------
 # 🥗 FOOD WASTE TIME FILTER
@@ -151,6 +165,9 @@ try:
     col = get_selected_column(time_range)
 
     st.subheader("🥗 Food Waste Monitoring (tons)")
+    st.markdown(
+        "Data source: Simulated dataset (can be replaced with USDA or EPA food waste data)"
+    )
 
     # Show table
     st.dataframe(waste_df[["location", col]])
