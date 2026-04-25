@@ -164,6 +164,7 @@ try:
         - USDA Agricultural Export Dataset (Plotly public dataset): https://github.com/plotly/datasets  
         - USDA Food Loss & Waste reference: https://www.usda.gov/foodlossandwaste  
         - EPA context reference: https://www.epa.gov/sustainable-management-food  
+        - Food Waste Table Data Points: https://raw.githubusercontent.com/plotly/datasets/master/2011_us_ag_exports.csv
         """
     )
 
@@ -208,5 +209,6 @@ st.markdown(
     - USDA Agricultural Export Dataset (Plotly public dataset): https://github.com/plotly/datasets  
     - USDA Food Loss & Waste reference: https://www.usda.gov/foodlossandwaste  
     - EPA context reference: https://www.epa.gov/sustainable-management-food  
+    - Food Waste Table Data Points: https://raw.githubusercontent.com/plotly/datasets/master/2011_us_ag_exports.csv
     """
 )
