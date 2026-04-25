@@ -5,7 +5,7 @@ import folium
 from streamlit_folium import st_folium
 
 st.set_page_config(layout="wide")
-st.title("🌍 Climate Intelligence Dashboard")
+st.title("🌍 ES 100 Climate Intelligence Dashboard - Kevin Chen")
 
 # -----------------------------
 # 🥗 FOOD WASTE DATA
