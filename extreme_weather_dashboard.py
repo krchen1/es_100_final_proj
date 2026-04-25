@@ -11,24 +11,23 @@ st.title("🌍 Climate Intelligence Dashboard")
 # 🥗 FOOD WASTE DATA
 # -----------------------------
 def get_food_waste_data():
-    url = "https://data.epa.gov/efservice/FRS_INTEREST/rows/0:100/json"
+    url = "https://data.epa.gov/efservice/RCRAINFO_FACILITY/rows/0:100/json"
 
     try:
         df = pd.read_json(url)
 
-        # 🔍 Inspect real column names first
-        # EPA datasets often use different naming formats
+        # Find coordinate columns dynamically
         lat_col = None
         lon_col = None
 
         for col in df.columns:
             if "LAT" in col.upper():
                 lat_col = col
-            if "LON" in col.upper():
+            if "LON" in col.upper() or "LONG" in col.upper():
                 lon_col = col
 
         if not lat_col or not lon_col:
-            st.error(f"EPA dataset missing coordinates. Columns: {list(df.columns)}")
+            st.error(f"EPA dataset has no coordinates. Columns: {list(df.columns)}")
             return pd.DataFrame()
 
         df = df.rename(columns={
@@ -38,13 +37,13 @@ def get_food_waste_data():
 
         df = df.dropna(subset=["lat", "lon"])
 
-        # Create proxy waste metric
-        df["waste_estimate"] = 100 + (df.index % 400)
+        # Proxy "waste intensity"
+        df["waste_estimate"] = 100 + (df.index % 300)
 
         return df[["lat", "lon", "waste_estimate"]]
 
     except Exception as e:
-        st.error(f"EPA data fetch failed: {e}")
+        st.error(f"EPA fetch failed: {e}")
         return pd.DataFrame()
 
 # -----------------------------
@@ -168,39 +167,34 @@ try:
     st.markdown(
         """
         Data sources:
-        - EPA Envirofacts / ECHO Facility Data: https://www.epa.gov/enviro  
+        - EPA RCRA Facility Data: https://www.epa.gov/enviro  
         - EPA ECHO Database: https://echo.epa.gov/tools/data-downloads  
         - USDA Food Loss Estimates: https://www.usda.gov/foodlossandwaste  
         """
     )
 
-    st.subheader("🥗 Food Waste Monitoring (EPA Live Data)")
-
     if waste_df.empty:
-        st.warning("No EPA food waste data available")
+        st.warning("No EPA geospatial data available")
     else:
-        st.dataframe(waste_df[["lat", "lon", "waste_estimate"]])
+        st.dataframe(waste_df)
 
         total_waste = waste_df["waste_estimate"].sum()
         st.metric("Total Waste Estimate", f"{total_waste:,} units")
 
-    # Add to map
-    for _, row in waste_df.iterrows():
-        value = row["waste_estimate"]
+        # Add to map
+        for _, row in waste_df.iterrows():
+            value = row["waste_estimate"]
 
-        radius = max(4, min(value / 20, 20))
+            radius = max(4, min(value / 20, 20))
 
-        folium.CircleMarker(
-            location=[row["lat"], row["lon"]],
-            radius=radius,
-            popup=f"EPA Waste Estimate: {value}",
-            color="green",
-            fill=True,
-            fill_opacity=0.6
-        ).add_to(m)
-
-    total_waste = waste_df[col].sum()
-    st.metric("Total Food Waste", f"{total_waste:,} tons")
+            folium.CircleMarker(
+                location=[row["lat"], row["lon"]],
+                radius=radius,
+                popup=f"EPA Waste Estimate: {value}",
+                color="green",
+                fill=True,
+                fill_opacity=0.6
+            ).add_to(m)
 
 except Exception as e:
     st.error(f"Food Waste Error: {e}")
